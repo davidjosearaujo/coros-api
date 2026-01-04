@@ -44,7 +44,6 @@ function login(account, md5PasswordHash) {
 }
 
 function latestActivities(accessToken, activityCount, activityCodes) {
-    // Fetches only running activities
     var codes = activityCodes.join(",");
     const activitiesListUrl = `${corosUrl}/activity/query?size=${activityCount}&pageNumber=1&modeList=${codes}`;
 
@@ -61,7 +60,8 @@ function latestActivities(accessToken, activityCount, activityCodes) {
     return activitiesList;
 }
 
-function exportCSV(accessToken, activity) {
+// File types: 0 - csv, 1 - gpx, 2 - kml, 3 - tcx, 4 - fit
+function exportActivity(accessToken, activity, fileType) {
     const options = {
         method: "GET",
         headers: {
@@ -69,11 +69,10 @@ function exportCSV(accessToken, activity) {
         },
         muteHttpExceptions: true,
     };
-    const activityCSVDownloadUrl = `${corosUrl}/activity/detail/download?labelId=${activity.labelId}&sportType=${activity.sportType}&fileType=0`;
-    let response = UrlFetchApp.fetch(activityCSVDownloadUrl, options);
+    const activityDownloadUrl = `${corosUrl}/activity/detail/download?labelId=${activity.labelId}&sportType=${activity.sportType}&fileType=${fileType}`;
+    let response = UrlFetchApp.fetch(activityDownloadUrl, options);
     const fileUrl = JSON.parse(response.getContentText()).data.fileUrl;
 
     response = UrlFetchApp.fetch(fileUrl, options);
-    const blob = response.getBlob();
-    return Utilities.parseCsv(blob.getDataAsString());
+    return response.getBlob();
 }
